@@ -1,0 +1,104 @@
+{
+  "groups": [
+    {
+      "name": "spring.cache.multi",
+      "type": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties"
+    },
+    {
+      "name": "spring.cache.multi.caffeine",
+      "type": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties",
+      "sourceMethod": "getCaffeine()"
+    },
+    {
+      "name": "spring.cache.multi.redis",
+      "type": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Redis",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties",
+      "sourceMethod": "getRedis()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "spring.cache.multi.cache-names",
+      "type": "java.util.Set<java.lang.String>",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties"
+    },
+    {
+      "name": "spring.cache.multi.cache-null-values",
+      "type": "java.lang.Boolean",
+      "description": "是否存储空值，默认true，防止缓存穿透",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.cache.multi.cache-prefix",
+      "type": "java.lang.String",
+      "description": "缓存key的前缀",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties"
+    },
+    {
+      "name": "spring.cache.multi.caffeine.expire-after-access",
+      "type": "java.lang.Long",
+      "description": "访问后过期时间，单位毫秒",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.caffeine.expire-after-write",
+      "type": "java.lang.Long",
+      "description": "写入后过期时间，单位毫秒",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.caffeine.initial-capacity",
+      "type": "java.lang.Integer",
+      "description": "初始化大小",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.caffeine.maximum-size",
+      "type": "java.lang.Long",
+      "description": "最大缓存对象个数，超过此数量时之前放入的缓存将失效",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.caffeine.refresh-after-write",
+      "type": "java.lang.Long",
+      "description": "写入后刷新时间，单位毫秒",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Caffeine",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.dynamic",
+      "type": "java.lang.Boolean",
+      "description": "是否动态根据cacheName创建Cache的实现，默认true",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.cache.multi.redis.default-expiration",
+      "type": "java.lang.Long",
+      "description": "全局过期时间，单位毫秒，默认不过期",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Redis",
+      "defaultValue": 0
+    },
+    {
+      "name": "spring.cache.multi.redis.expires",
+      "type": "java.util.Map<java.lang.String,java.lang.Long>",
+      "description": "每个cacheName的过期时间，单位毫秒，优先级比defaultExpiration高",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Redis"
+    },
+    {
+      "name": "spring.cache.multi.redis.topic",
+      "type": "java.lang.String",
+      "description": "缓存更新时通知其他节点的topic名称",
+      "sourceType": "com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties$Redis",
+      "defaultValue": "cache:redis:caffeine:topic"
+    }
+  ],
+  "hints": []
+}
