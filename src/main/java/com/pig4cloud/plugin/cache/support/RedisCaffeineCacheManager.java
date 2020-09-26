@@ -1,9 +1,8 @@
 package com.pig4cloud.plugin.cache.support;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,30 +15,28 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author fuwei.deng
- * @date 2018年1月26日 下午5:24:52
  * @version 1.0.0
  */
+@Slf4j
 public class RedisCaffeineCacheManager implements CacheManager {
-
-	private final Logger logger = LoggerFactory.getLogger(RedisCaffeineCacheManager.class);
 
 	private ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>();
 
-	private CacheRedisCaffeineProperties cacheRedisCaffeineProperties;
+	private CacheConfigProperties cacheConfigProperties;
 
 	private RedisTemplate<Object, Object> stringKeyRedisTemplate;
 
-	private boolean dynamic = true;
+	private boolean dynamic;
 
 	private Set<String> cacheNames;
 
-	public RedisCaffeineCacheManager(CacheRedisCaffeineProperties cacheRedisCaffeineProperties,
+	public RedisCaffeineCacheManager(CacheConfigProperties cacheConfigProperties,
 			RedisTemplate<Object, Object> stringKeyRedisTemplate) {
 		super();
-		this.cacheRedisCaffeineProperties = cacheRedisCaffeineProperties;
+		this.cacheConfigProperties = cacheConfigProperties;
 		this.stringKeyRedisTemplate = stringKeyRedisTemplate;
-		this.dynamic = cacheRedisCaffeineProperties.isDynamic();
-		this.cacheNames = cacheRedisCaffeineProperties.getCacheNames();
+		this.dynamic = cacheConfigProperties.isDynamic();
+		this.cacheNames = cacheConfigProperties.getCacheNames();
 	}
 
 	@Override
@@ -52,30 +49,30 @@ public class RedisCaffeineCacheManager implements CacheManager {
 			return cache;
 		}
 
-		cache = new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(), cacheRedisCaffeineProperties);
+		cache = new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(), cacheConfigProperties);
 		Cache oldCache = cacheMap.putIfAbsent(name, cache);
-		logger.debug("create cache instance, the cache name is : {}", name);
+		log.debug("create cache instance, the cache name is : {}", name);
 		return oldCache == null ? cache : oldCache;
 	}
 
 	public com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache() {
 		Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
-		if (cacheRedisCaffeineProperties.getCaffeine().getExpireAfterAccess() > 0) {
-			cacheBuilder.expireAfterAccess(cacheRedisCaffeineProperties.getCaffeine().getExpireAfterAccess(),
+		if (cacheConfigProperties.getCaffeine().getExpireAfterAccess() > 0) {
+			cacheBuilder.expireAfterAccess(cacheConfigProperties.getCaffeine().getExpireAfterAccess(),
 					TimeUnit.MILLISECONDS);
 		}
-		if (cacheRedisCaffeineProperties.getCaffeine().getExpireAfterWrite() > 0) {
-			cacheBuilder.expireAfterWrite(cacheRedisCaffeineProperties.getCaffeine().getExpireAfterWrite(),
+		if (cacheConfigProperties.getCaffeine().getExpireAfterWrite() > 0) {
+			cacheBuilder.expireAfterWrite(cacheConfigProperties.getCaffeine().getExpireAfterWrite(),
 					TimeUnit.MILLISECONDS);
 		}
-		if (cacheRedisCaffeineProperties.getCaffeine().getInitialCapacity() > 0) {
-			cacheBuilder.initialCapacity(cacheRedisCaffeineProperties.getCaffeine().getInitialCapacity());
+		if (cacheConfigProperties.getCaffeine().getInitialCapacity() > 0) {
+			cacheBuilder.initialCapacity(cacheConfigProperties.getCaffeine().getInitialCapacity());
 		}
-		if (cacheRedisCaffeineProperties.getCaffeine().getMaximumSize() > 0) {
-			cacheBuilder.maximumSize(cacheRedisCaffeineProperties.getCaffeine().getMaximumSize());
+		if (cacheConfigProperties.getCaffeine().getMaximumSize() > 0) {
+			cacheBuilder.maximumSize(cacheConfigProperties.getCaffeine().getMaximumSize());
 		}
-		if (cacheRedisCaffeineProperties.getCaffeine().getRefreshAfterWrite() > 0) {
-			cacheBuilder.refreshAfterWrite(cacheRedisCaffeineProperties.getCaffeine().getRefreshAfterWrite(),
+		if (cacheConfigProperties.getCaffeine().getRefreshAfterWrite() > 0) {
+			cacheBuilder.refreshAfterWrite(cacheConfigProperties.getCaffeine().getRefreshAfterWrite(),
 					TimeUnit.MILLISECONDS);
 		}
 		return cacheBuilder.build();

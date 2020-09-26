@@ -1,9 +1,8 @@
 package com.pig4cloud.plugin.cache.support;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.pig4cloud.plugin.cache.CacheRedisCaffeineProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
@@ -17,12 +16,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author fuwei.deng
- * @date 2018年1月26日 下午5:24:11
  * @version 1.0.0
  */
+@Slf4j
 public class RedisCaffeineCache extends AbstractValueAdaptingCache {
-
-	private final Logger logger = LoggerFactory.getLogger(RedisCaffeineCache.class);
 
 	private String name;
 
@@ -32,28 +29,24 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 	private String cachePrefix;
 
-	private long defaultExpiration = 0;
+	private long defaultExpiration;
 
 	private Map<String, Long> expires;
 
-	private String topic = "cache:redis:caffeine:topic";
+	private String topic;
 
-	private Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<String, ReentrantLock>();
-
-	protected RedisCaffeineCache(boolean allowNullValues) {
-		super(allowNullValues);
-	}
+	private Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
 
 	public RedisCaffeineCache(String name, RedisTemplate<Object, Object> stringKeyRedisTemplate,
-			Cache<Object, Object> caffeineCache, CacheRedisCaffeineProperties cacheRedisCaffeineProperties) {
-		super(cacheRedisCaffeineProperties.isCacheNullValues());
+			Cache<Object, Object> caffeineCache, CacheConfigProperties cacheConfigProperties) {
+		super(cacheConfigProperties.isCacheNullValues());
 		this.name = name;
 		this.stringKeyRedisTemplate = stringKeyRedisTemplate;
 		this.caffeineCache = caffeineCache;
-		this.cachePrefix = cacheRedisCaffeineProperties.getCachePrefix();
-		this.defaultExpiration = cacheRedisCaffeineProperties.getRedis().getDefaultExpiration();
-		this.expires = cacheRedisCaffeineProperties.getRedis().getExpires();
-		this.topic = cacheRedisCaffeineProperties.getRedis().getTopic();
+		this.cachePrefix = cacheConfigProperties.getCachePrefix();
+		this.defaultExpiration = cacheConfigProperties.getRedis().getDefaultExpiration();
+		this.expires = cacheConfigProperties.getRedis().getExpires();
+		this.topic = cacheConfigProperties.getRedis().getTopic();
 	}
 
 	@Override
@@ -76,7 +69,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 		ReentrantLock lock = keyLockMap.get(key.toString());
 		if (lock == null) {
-			logger.debug("create lock for key : {}", key);
+			log.debug("create lock for key : {}", key);
 			lock = new ReentrantLock();
 			keyLockMap.putIfAbsent(key.toString(), lock);
 		}
@@ -171,14 +164,14 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		Object cacheKey = getKey(key);
 		Object value = caffeineCache.getIfPresent(key);
 		if (value != null) {
-			logger.debug("get cache from caffeine, the key is : {}", cacheKey);
+			log.debug("get cache from caffeine, the key is : {}", cacheKey);
 			return value;
 		}
 
 		value = stringKeyRedisTemplate.opsForValue().get(cacheKey);
 
 		if (value != null) {
-			logger.debug("get cache from redis and put in caffeine, the key is : {}", cacheKey);
+			log.debug("get cache from redis and put in caffeine, the key is : {}", cacheKey);
 			caffeineCache.put(key, value);
 		}
 		return value;
@@ -196,25 +189,25 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	}
 
 	/**
+	 * @param message
 	 * @description 缓存变更时通知其他节点清理本地缓存
 	 * @author fuwei.deng
 	 * @date 2018年1月31日 下午3:20:28
 	 * @version 1.0.0
-	 * @param message
 	 */
 	private void push(CacheMessage message) {
 		stringKeyRedisTemplate.convertAndSend(topic, message);
 	}
 
 	/**
+	 * @param key
 	 * @description 清理本地缓存
 	 * @author fuwei.deng
 	 * @date 2018年1月31日 下午3:15:39
 	 * @version 1.0.0
-	 * @param key
 	 */
 	public void clearLocal(Object key) {
-		logger.debug("clear local cache, the key is : {}", key);
+		log.debug("clear local cache, the key is : {}", key);
 		if (key == null) {
 			caffeineCache.invalidateAll();
 		}

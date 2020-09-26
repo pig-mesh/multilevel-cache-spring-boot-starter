@@ -1,8 +1,9 @@
 package com.pig4cloud.plugin.cache;
 
+import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
 import com.pig4cloud.plugin.cache.support.CacheMessageListener;
 import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,21 +19,20 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * @author fuwei.deng
- * @date 2018年1月26日 下午5:23:03
  * @version 1.0.0
  */
-@Configuration
+@RequiredArgsConstructor
+@Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
-@EnableConfigurationProperties(CacheRedisCaffeineProperties.class)
-public class CacheRedisCaffeineAutoConfiguration {
+@EnableConfigurationProperties(CacheConfigProperties.class)
+public class MultilevelCacheAutoConfiguration {
 
-	@Autowired
-	private CacheRedisCaffeineProperties cacheRedisCaffeineProperties;
+	private final CacheConfigProperties cacheConfigProperties;
 
 	@Bean
 	@ConditionalOnBean(RedisTemplate.class)
 	public RedisCaffeineCacheManager cacheManager(RedisTemplate<Object, Object> redisTemplate) {
-		return new RedisCaffeineCacheManager(cacheRedisCaffeineProperties, redisTemplate);
+		return new RedisCaffeineCacheManager(cacheConfigProperties, redisTemplate);
 	}
 
 	@Bean
@@ -53,7 +53,7 @@ public class CacheRedisCaffeineAutoConfiguration {
 		CacheMessageListener cacheMessageListener = new CacheMessageListener(stringKeyRedisTemplate,
 				redisCaffeineCacheManager);
 		redisMessageListenerContainer.addMessageListener(cacheMessageListener,
-				new ChannelTopic(cacheRedisCaffeineProperties.getRedis().getTopic()));
+				new ChannelTopic(cacheConfigProperties.getRedis().getTopic()));
 		return redisMessageListenerContainer;
 	}
 
