@@ -2,6 +2,7 @@ package com.pig4cloud.plugin.cache.support;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,21 +22,22 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
-	private String name;
+	@Getter
+	private final String name;
+	@Getter
+	private final Cache<Object, Object> caffeineCache;
 
-	private RedisTemplate<Object, Object> stringKeyRedisTemplate;
+	private final RedisTemplate<Object, Object> stringKeyRedisTemplate;
 
-	private Cache<Object, Object> caffeineCache;
+	private final String cachePrefix;
 
-	private String cachePrefix;
+	private final long defaultExpiration;
 
-	private long defaultExpiration;
+	private final Map<String, Long> expires;
 
-	private Map<String, Long> expires;
+	private final String topic;
 
-	private String topic;
-
-	private Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
+	private final Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
 
 	public RedisCaffeineCache(String name, RedisTemplate<Object, Object> stringKeyRedisTemplate,
 			Cache<Object, Object> caffeineCache, CacheConfigProperties cacheConfigProperties) {
@@ -47,11 +49,6 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		this.defaultExpiration = cacheConfigProperties.getRedis().getDefaultExpiration();
 		this.expires = cacheConfigProperties.getRedis().getExpires();
 		this.topic = cacheConfigProperties.getRedis().getTopic();
-	}
-
-	@Override
-	public String getName() {
-		return this.name;
 	}
 
 	@Override
