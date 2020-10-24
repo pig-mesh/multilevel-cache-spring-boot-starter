@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -64,12 +65,11 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			return (T) value;
 		}
 
-		ReentrantLock lock = keyLockMap.get(key.toString());
-		if (lock == null) {
-			log.debug("create lock for key : {}", key);
-			lock = new ReentrantLock();
-			keyLockMap.putIfAbsent(key.toString(), lock);
-		}
+		ReentrantLock lock = keyLockMap.computeIfAbsent(key.toString(), s -> {
+			log.trace("create lock for key : {}", s);
+			return new ReentrantLock();
+		});
+
 		try {
 			lock.lock();
 			value = lookup(key);
@@ -147,8 +147,9 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	public void clear() {
 		// 先清除redis中缓存数据，然后清除caffeine中的缓存，避免短时间内如果先清除caffeine缓存后其他请求会再从redis里加载到caffeine中
 		Set<Object> keys = stringKeyRedisTemplate.keys(this.name.concat(":*"));
-		for (Object key : keys) {
-			stringKeyRedisTemplate.delete(key);
+
+		if (!CollectionUtils.isEmpty(keys)){
+			stringKeyRedisTemplate.delete(keys);
 		}
 
 		push(new CacheMessage(this.name, null));
@@ -180,9 +181,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	}
 
 	private long getExpire() {
-		long expire = defaultExpiration;
 		Long cacheNameExpire = expires.get(this.name);
-		return cacheNameExpire == null ? expire : cacheNameExpire.longValue();
+		return cacheNameExpire == null ? defaultExpiration : cacheNameExpire;
 	}
 
 	/**
