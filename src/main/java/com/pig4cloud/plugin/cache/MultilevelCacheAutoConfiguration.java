@@ -29,8 +29,8 @@ public class MultilevelCacheAutoConfiguration {
 	@ConditionalOnBean(RedisTemplate.class)
 	public RedisCaffeineCacheManager cacheManager(
 			CacheConfigProperties cacheConfigProperties,
-			RedisTemplate<Object, Object> redisTemplate) {
-		return new RedisCaffeineCacheManager(cacheConfigProperties, redisTemplate);
+			RedisTemplate<Object, Object> stringKeyRedisTemplate) {
+		return new RedisCaffeineCacheManager(cacheConfigProperties, stringKeyRedisTemplate);
 	}
 
 	@Bean

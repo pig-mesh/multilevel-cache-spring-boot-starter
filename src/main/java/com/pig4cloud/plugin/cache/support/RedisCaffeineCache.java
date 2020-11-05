@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -166,6 +167,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			return value;
 		}
 
+		// 避免自动一个 RedisTemplate 覆盖失效
+		stringKeyRedisTemplate.setKeySerializer(new StringRedisSerializer());
 		value = stringKeyRedisTemplate.opsForValue().get(cacheKey);
 
 		if (value != null) {
