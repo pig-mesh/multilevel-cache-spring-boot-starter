@@ -97,11 +97,12 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			return;
 		}
 		long expire = getExpire();
+		value = toStoreValue(value);
 		if (expire > 0) {
-			stringKeyRedisTemplate.opsForValue().set(getKey(key), toStoreValue(value), expire, TimeUnit.MILLISECONDS);
+			stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire, TimeUnit.MILLISECONDS);
 		}
 		else {
-			stringKeyRedisTemplate.opsForValue().set(getKey(key), toStoreValue(value));
+			stringKeyRedisTemplate.opsForValue().set(getKey(key), value);
 		}
 
 		push(new CacheMessage(this.name, key));
@@ -118,17 +119,17 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
 			if (prevValue == null) {
 				long expire = getExpire();
+				value = toStoreValue(value);
 				if (expire > 0) {
-					stringKeyRedisTemplate.opsForValue().set(getKey(key), toStoreValue(value), expire,
-							TimeUnit.MILLISECONDS);
+					stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire, TimeUnit.MILLISECONDS);
 				}
 				else {
-					stringKeyRedisTemplate.opsForValue().set(getKey(key), toStoreValue(value));
+					stringKeyRedisTemplate.opsForValue().set(getKey(key), value);
 				}
 
 				push(new CacheMessage(this.name, key));
 
-				caffeineCache.put(key, toStoreValue(value));
+				caffeineCache.put(key, value);
 			}
 		}
 		return toValueWrapper(prevValue);
