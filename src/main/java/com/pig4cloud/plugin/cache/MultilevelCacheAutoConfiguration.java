@@ -27,8 +27,7 @@ public class MultilevelCacheAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(RedisTemplate.class)
-	public RedisCaffeineCacheManager cacheManager(
-			CacheConfigProperties cacheConfigProperties,
+	public RedisCaffeineCacheManager cacheManager(CacheConfigProperties cacheConfigProperties,
 			RedisTemplate<Object, Object> stringKeyRedisTemplate) {
 		return new RedisCaffeineCacheManager(cacheConfigProperties, stringKeyRedisTemplate);
 	}
@@ -44,10 +43,8 @@ public class MultilevelCacheAutoConfiguration {
 	}
 
 	@Bean
-	public RedisMessageListenerContainer redisMessageListenerContainer(
-			CacheConfigProperties cacheConfigProperties,
-			RedisTemplate<Object, Object> stringKeyRedisTemplate,
-			RedisCaffeineCacheManager redisCaffeineCacheManager) {
+	public RedisMessageListenerContainer redisMessageListenerContainer(CacheConfigProperties cacheConfigProperties,
+			RedisTemplate<Object, Object> stringKeyRedisTemplate, RedisCaffeineCacheManager redisCaffeineCacheManager) {
 		RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
 		redisMessageListenerContainer.setConnectionFactory(stringKeyRedisTemplate.getConnectionFactory());
 		CacheMessageListener cacheMessageListener = new CacheMessageListener(stringKeyRedisTemplate,

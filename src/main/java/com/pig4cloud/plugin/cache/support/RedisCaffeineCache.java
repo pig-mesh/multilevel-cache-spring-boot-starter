@@ -26,6 +26,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 	@Getter
 	private final String name;
+
 	@Getter
 	private final Cache<Object, Object> caffeineCache;
 
@@ -150,7 +151,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		// 先清除redis中缓存数据，然后清除caffeine中的缓存，避免短时间内如果先清除caffeine缓存后其他请求会再从redis里加载到caffeine中
 		Set<Object> keys = stringKeyRedisTemplate.keys(this.name.concat(":*"));
 
-		if (!CollectionUtils.isEmpty(keys)){
+		if (!CollectionUtils.isEmpty(keys)) {
 			stringKeyRedisTemplate.delete(keys);
 		}
 

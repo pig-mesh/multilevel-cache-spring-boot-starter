@@ -7,12 +7,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configure {@link org.springframework.boot.actuate.metrics.cache.CacheMeterBinderProvider} beans.
+ * Configure
+ * {@link org.springframework.boot.actuate.metrics.cache.CacheMeterBinderProvider} beans.
  *
  * @author L.cm
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({MeterBinder.class, CacheMeterBinderProvider.class})
+@ConditionalOnClass({ MeterBinder.class, CacheMeterBinderProvider.class })
 public class RedisCaffeineCacheMeterConfiguration {
 
 	@Bean

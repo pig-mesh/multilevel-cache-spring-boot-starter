@@ -15,8 +15,9 @@ import org.springframework.boot.actuate.metrics.cache.CacheMeterBinderProvider;
 @NoArgsConstructor
 public class RedisCaffeineCacheMeterBinderProvider implements CacheMeterBinderProvider<RedisCaffeineCache> {
 
-    @Override
-    public MeterBinder getMeterBinder(RedisCaffeineCache cache, Iterable<Tag> tags) {
-        return new CaffeineCacheMetrics(cache.getCaffeineCache(), cache.getName(), tags);
-    }
+	@Override
+	public MeterBinder getMeterBinder(RedisCaffeineCache cache, Iterable<Tag> tags) {
+		return new CaffeineCacheMetrics(cache.getCaffeineCache(), cache.getName(), tags);
+	}
+
 }
