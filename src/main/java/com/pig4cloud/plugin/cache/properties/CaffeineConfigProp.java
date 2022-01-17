@@ -2,6 +2,8 @@ package com.pig4cloud.plugin.cache.properties;
 
 import lombok.Data;
 
+import java.time.Duration;
+
 /**
  * @author lengleng
  * @date 2020/9/26
@@ -12,19 +14,19 @@ import lombok.Data;
 public class CaffeineConfigProp {
 
 	/**
-	 * 访问后过期时间，单位毫秒
+	 * 访问后过期时间
 	 */
-	private long expireAfterAccess;
+	private Duration expireAfterAccess;
 
 	/**
-	 * 写入后过期时间，单位毫秒
+	 * 写入后过期时间
 	 */
-	private long expireAfterWrite;
+	private Duration expireAfterWrite;
 
 	/**
-	 * 写入后刷新时间，单位毫秒
+	 * 写入后刷新时间
 	 */
-	private long refreshAfterWrite;
+	private Duration refreshAfterWrite;
 
 	/**
 	 * 初始化大小

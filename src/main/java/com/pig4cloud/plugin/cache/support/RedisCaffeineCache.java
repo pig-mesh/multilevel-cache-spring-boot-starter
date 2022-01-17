@@ -10,11 +10,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -34,9 +34,9 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 	private final String cachePrefix;
 
-	private final long defaultExpiration;
+	private final Duration defaultExpiration;
 
-	private final Map<String, Long> expires;
+	private final Map<String, Duration> expires;
 
 	private final String topic;
 
@@ -97,10 +97,28 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			this.evict(key);
 			return;
 		}
-		long expire = getExpire();
+		doPut(key, value);
+	}
+
+	@Override
+	public ValueWrapper putIfAbsent(Object key, Object value) {
+		Object cacheKey = getKey(key);
+		Object prevValue;
+		// 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
+		synchronized (key) {
+			prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
+			if (prevValue == null) {
+				doPut(key, value);
+			}
+		}
+		return toValueWrapper(prevValue);
+	}
+
+	private void doPut(Object key,Object value){
+		Duration expire = getExpire();
 		value = toStoreValue(value);
-		if (expire > 0) {
-			stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire, TimeUnit.MILLISECONDS);
+		if (!expire.isNegative()) {
+			stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire);
 		}
 		else {
 			stringKeyRedisTemplate.opsForValue().set(getKey(key), value);
@@ -109,31 +127,6 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		push(new CacheMessage(this.name, key));
 
 		caffeineCache.put(key, value);
-	}
-
-	@Override
-	public ValueWrapper putIfAbsent(Object key, Object value) {
-		Object cacheKey = getKey(key);
-		Object prevValue = null;
-		// 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
-		synchronized (key) {
-			prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
-			if (prevValue == null) {
-				long expire = getExpire();
-				value = toStoreValue(value);
-				if (expire > 0) {
-					stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire, TimeUnit.MILLISECONDS);
-				}
-				else {
-					stringKeyRedisTemplate.opsForValue().set(getKey(key), value);
-				}
-
-				push(new CacheMessage(this.name, key));
-
-				caffeineCache.put(key, value);
-			}
-		}
-		return toValueWrapper(prevValue);
 	}
 
 	@Override
@@ -185,8 +178,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 				StringUtils.isEmpty(cachePrefix) ? key.toString() : cachePrefix.concat(":").concat(key.toString()));
 	}
 
-	private long getExpire() {
-		Long cacheNameExpire = expires.get(this.name);
+	private Duration getExpire() {
+		Duration cacheNameExpire = expires.get(this.name);
 		return cacheNameExpire == null ? defaultExpiration : cacheNameExpire;
 	}
 

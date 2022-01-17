@@ -7,11 +7,12 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author fuwei.deng
@@ -57,25 +58,22 @@ public class RedisCaffeineCacheManager implements CacheManager {
 
 	public com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache() {
 		Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
-		if (cacheConfigProperties.getCaffeine().getExpireAfterAccess() > 0) {
-			cacheBuilder.expireAfterAccess(cacheConfigProperties.getCaffeine().getExpireAfterAccess(),
-					TimeUnit.MILLISECONDS);
-		}
-		if (cacheConfigProperties.getCaffeine().getExpireAfterWrite() > 0) {
-			cacheBuilder.expireAfterWrite(cacheConfigProperties.getCaffeine().getExpireAfterWrite(),
-					TimeUnit.MILLISECONDS);
-		}
+		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterAccess(), cacheBuilder::expireAfterAccess);
+		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterWrite(), cacheBuilder::expireAfterWrite);
+		doIfPresent(cacheConfigProperties.getCaffeine().getRefreshAfterWrite(), cacheBuilder::refreshAfterWrite);
 		if (cacheConfigProperties.getCaffeine().getInitialCapacity() > 0) {
 			cacheBuilder.initialCapacity(cacheConfigProperties.getCaffeine().getInitialCapacity());
 		}
 		if (cacheConfigProperties.getCaffeine().getMaximumSize() > 0) {
 			cacheBuilder.maximumSize(cacheConfigProperties.getCaffeine().getMaximumSize());
 		}
-		if (cacheConfigProperties.getCaffeine().getRefreshAfterWrite() > 0) {
-			cacheBuilder.refreshAfterWrite(cacheConfigProperties.getCaffeine().getRefreshAfterWrite(),
-					TimeUnit.MILLISECONDS);
-		}
 		return cacheBuilder.build();
+	}
+
+	protected static void doIfPresent(Duration duration, Consumer<Duration> consumer) {
+		if (duration != null && !duration.isNegative()) {
+			consumer.accept(duration);
+		}
 	}
 
 	@Override
