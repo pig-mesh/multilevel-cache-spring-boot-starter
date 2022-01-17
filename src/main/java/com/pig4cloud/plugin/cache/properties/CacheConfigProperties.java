@@ -2,6 +2,7 @@ package com.pig4cloud.plugin.cache.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,8 +34,10 @@ public class CacheConfigProperties {
 	 */
 	private String cachePrefix;
 
+	@NestedConfigurationProperty
 	private RedisConfigProp redis = new RedisConfigProp();
 
+	@NestedConfigurationProperty
 	private CaffeineConfigProp caffeine = new CaffeineConfigProp();
 
 }
