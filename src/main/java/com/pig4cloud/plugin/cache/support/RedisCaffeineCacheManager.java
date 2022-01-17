@@ -67,6 +67,26 @@ public class RedisCaffeineCacheManager implements CacheManager {
 		if (cacheConfigProperties.getCaffeine().getMaximumSize() > 0) {
 			cacheBuilder.maximumSize(cacheConfigProperties.getCaffeine().getMaximumSize());
 		}
+		if (cacheConfigProperties.getCaffeine().getKeyStrength() != null) {
+			switch (cacheConfigProperties.getCaffeine().getKeyStrength()) {
+				case WEAK:
+					cacheBuilder.weakKeys();
+					break;
+				case SOFT:
+					throw new UnsupportedOperationException("caffeine 不支持 key 软引用");
+				default:
+			}
+		}
+		if (cacheConfigProperties.getCaffeine().getValueStrength() != null) {
+			switch (cacheConfigProperties.getCaffeine().getValueStrength()) {
+				case WEAK:
+					cacheBuilder.weakValues();
+					break;
+				case SOFT:
+					cacheBuilder.softValues();
+				default:
+			}
+		}
 		return cacheBuilder.build();
 	}
 
