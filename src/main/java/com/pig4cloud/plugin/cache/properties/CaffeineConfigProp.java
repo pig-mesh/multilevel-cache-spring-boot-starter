@@ -1,6 +1,9 @@
 package com.pig4cloud.plugin.cache.properties;
 
+import com.pig4cloud.plugin.cache.enums.CaffeineStrength;
 import lombok.Data;
+
+import java.time.Duration;
 
 /**
  * @author lengleng
@@ -12,19 +15,19 @@ import lombok.Data;
 public class CaffeineConfigProp {
 
 	/**
-	 * 访问后过期时间，单位毫秒
+	 * 访问后过期时间
 	 */
-	private long expireAfterAccess;
+	private Duration expireAfterAccess;
 
 	/**
-	 * 写入后过期时间，单位毫秒
+	 * 写入后过期时间
 	 */
-	private long expireAfterWrite;
+	private Duration expireAfterWrite;
 
 	/**
-	 * 写入后刷新时间，单位毫秒
+	 * 写入后刷新时间
 	 */
-	private long refreshAfterWrite;
+	private Duration refreshAfterWrite;
 
 	/**
 	 * 初始化大小
@@ -35,5 +38,15 @@ public class CaffeineConfigProp {
 	 * 最大缓存对象个数，超过此数量时之前放入的缓存将失效
 	 */
 	private long maximumSize;
+
+	/**
+	 * key 强度
+	 */
+	private CaffeineStrength keyStrength;
+
+	/**
+	 * value 强度
+	 */
+	private CaffeineStrength valueStrength;
 
 }
