@@ -43,7 +43,7 @@ public class MultilevelCacheAutoConfiguration {
 	}
 
 	@Bean
-	public RedisMessageListenerContainer redisMessageListenerContainer(CacheConfigProperties cacheConfigProperties,
+	public RedisMessageListenerContainer cacheMessageListenerContainer(CacheConfigProperties cacheConfigProperties,
 			RedisTemplate<Object, Object> stringKeyRedisTemplate, RedisCaffeineCacheManager redisCaffeineCacheManager) {
 		RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
 		redisMessageListenerContainer.setConnectionFactory(stringKeyRedisTemplate.getConnectionFactory());
