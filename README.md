@@ -32,7 +32,7 @@
 <dependency>
     <groupId>com.pig4cloud.plugin</groupId>
     <artifactId>multilevel-cache-spring-boot-starter</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 </dependency>
 ```
 

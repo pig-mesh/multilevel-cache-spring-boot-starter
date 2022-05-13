@@ -7,6 +7,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  */
 @SuppressWarnings("JavadocReference")
 public enum CaffeineStrength {
-    /** 弱引用 */ WEAK,
-    /** 软引用 */ SOFT
+
+	/** 弱引用 */
+	WEAK,
+	/** 软引用 */
+	SOFT
+
 }

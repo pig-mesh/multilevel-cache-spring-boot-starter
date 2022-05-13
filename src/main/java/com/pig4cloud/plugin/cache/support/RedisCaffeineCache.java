@@ -114,7 +114,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		return toValueWrapper(prevValue);
 	}
 
-	private void doPut(Object key,Object value){
+	private void doPut(Object key, Object value) {
 		Duration expire = getExpire();
 		value = toStoreValue(value);
 		if (!expire.isNegative()) {
