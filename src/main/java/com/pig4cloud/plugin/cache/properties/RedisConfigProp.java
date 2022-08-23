@@ -21,6 +21,11 @@ public class RedisConfigProp {
 	private Duration defaultExpiration = Duration.ZERO;
 
 	/**
+	 * 全局空值过期时间，默认和有值的过期时间一致，一般设置空值过期时间较短
+	 */
+	private Duration defaultNullValuesExpiration = null;
+
+	/**
 	 * 每个cacheName的过期时间，优先级比defaultExpiration高
 	 */
 	private Map<String, Duration> expires = new HashMap<>();

@@ -36,6 +36,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 	private final Duration defaultExpiration;
 
+	private final Duration defaultNullValuesExpiration;
+
 	private final Map<String, Duration> expires;
 
 	private final String topic;
@@ -50,6 +52,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		this.caffeineCache = caffeineCache;
 		this.cachePrefix = cacheConfigProperties.getCachePrefix();
 		this.defaultExpiration = cacheConfigProperties.getRedis().getDefaultExpiration();
+		this.defaultNullValuesExpiration = cacheConfigProperties.getRedis().getDefaultNullValuesExpiration();
 		this.expires = cacheConfigProperties.getRedis().getExpires();
 		this.topic = cacheConfigProperties.getRedis().getTopic();
 	}
@@ -115,9 +118,9 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	}
 
 	private void doPut(Object key, Object value) {
-		Duration expire = getExpire();
+		Duration expire = getExpire(value);
 		value = toStoreValue(value);
-		if (!expire.isNegative()) {
+		if (!expire.isNegative() && !expire.isZero()) {
 			stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire);
 		}
 		else {
@@ -178,9 +181,15 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 				StringUtils.isEmpty(cachePrefix) ? key.toString() : cachePrefix.concat(":").concat(key.toString()));
 	}
 
-	private Duration getExpire() {
+	private Duration getExpire(Object value) {
 		Duration cacheNameExpire = expires.get(this.name);
-		return cacheNameExpire == null ? defaultExpiration : cacheNameExpire;
+		if (cacheNameExpire == null) {
+			cacheNameExpire = defaultExpiration;
+		}
+		if (value == null && this.defaultNullValuesExpiration != null) {
+			cacheNameExpire = this.defaultNullValuesExpiration;
+		}
+		return cacheNameExpire;
 	}
 
 	/**
