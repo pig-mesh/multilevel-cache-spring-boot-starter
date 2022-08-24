@@ -210,7 +210,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			return null;
 		}, true);
 
-		//stringKeyRedisTemplate.convertAndSend(topic, message);
+		// stringKeyRedisTemplate.convertAndSend(topic, message);
 	}
 
 	/**
