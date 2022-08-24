@@ -3,6 +3,7 @@ package com.pig4cloud.plugin.cache;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
 import com.pig4cloud.plugin.cache.support.CacheMessageListener;
 import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,10 +29,13 @@ public class MultilevelCacheAutoConfiguration {
 	@Bean
 	@ConditionalOnBean(RedisTemplate.class)
 	public RedisCaffeineCacheManager cacheManager(CacheConfigProperties cacheConfigProperties,
-			RedisTemplate<Object, Object> stringKeyRedisTemplate) {
+			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate) {
 		return new RedisCaffeineCacheManager(cacheConfigProperties, stringKeyRedisTemplate);
 	}
 
+	/**
+	 * 可自定义名称为stringKeyRedisTemplate的RedisTemplate覆盖掉默认RedisTemplate。
+	 */
 	@Bean
 	@ConditionalOnMissingBean(name = "stringKeyRedisTemplate")
 	public RedisTemplate<Object, Object> stringKeyRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
@@ -44,11 +48,11 @@ public class MultilevelCacheAutoConfiguration {
 
 	@Bean
 	public RedisMessageListenerContainer cacheMessageListenerContainer(CacheConfigProperties cacheConfigProperties,
-			RedisTemplate<Object, Object> stringKeyRedisTemplate, RedisCaffeineCacheManager redisCaffeineCacheManager) {
+			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
+			RedisCaffeineCacheManager redisCaffeineCacheManager) {
 		RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
 		redisMessageListenerContainer.setConnectionFactory(stringKeyRedisTemplate.getConnectionFactory());
-		CacheMessageListener cacheMessageListener = new CacheMessageListener(stringKeyRedisTemplate,
-				redisCaffeineCacheManager);
+		CacheMessageListener cacheMessageListener = new CacheMessageListener(redisCaffeineCacheManager);
 		redisMessageListenerContainer.addMessageListener(cacheMessageListener,
 				new ChannelTopic(cacheConfigProperties.getRedis().getTopic()));
 		return redisMessageListenerContainer;
