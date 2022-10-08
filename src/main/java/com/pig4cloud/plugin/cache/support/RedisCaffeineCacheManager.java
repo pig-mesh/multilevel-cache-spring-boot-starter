@@ -2,6 +2,8 @@ package com.pig4cloud.plugin.cache.support;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -19,9 +21,11 @@ import java.util.function.Consumer;
  * @version 1.0.0
  */
 @Slf4j
+@Getter
+@Setter
 public class RedisCaffeineCacheManager implements CacheManager {
 
-	private ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<String, Cache>();
+	private ConcurrentMap<String, Cache> cacheMap = new ConcurrentHashMap<>();
 
 	private CacheConfigProperties cacheConfigProperties;
 
@@ -47,16 +51,24 @@ public class RedisCaffeineCacheManager implements CacheManager {
 			return cache;
 		}
 		if (!dynamic && !cacheNames.contains(name)) {
-			return cache;
+			return null;
 		}
 
-		cache = new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(), cacheConfigProperties);
+		cache = createCache(name);
 		Cache oldCache = cacheMap.putIfAbsent(name, cache);
 		log.debug("create cache instance, the cache name is : {}", name);
 		return oldCache == null ? cache : oldCache;
 	}
 
+	public RedisCaffeineCache createCache(String name) {
+		return new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(), cacheConfigProperties);
+	}
+
 	public com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache() {
+		return caffeineCacheBuilder().build();
+	}
+
+	public Caffeine<Object, Object> caffeineCacheBuilder() {
 		Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
 		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterAccess(), cacheBuilder::expireAfterAccess);
 		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterWrite(), cacheBuilder::expireAfterWrite);
@@ -84,10 +96,11 @@ public class RedisCaffeineCacheManager implements CacheManager {
 				break;
 			case SOFT:
 				cacheBuilder.softValues();
+				break;
 			default:
 			}
 		}
-		return cacheBuilder.build();
+		return cacheBuilder;
 	}
 
 	protected static void doIfPresent(Duration duration, Consumer<Duration> consumer) {

@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -24,12 +22,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 1.0.0
  */
 @Slf4j
+@Getter
 public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
-	@Getter
 	private final String name;
 
-	@Getter
 	private final Cache<Object, Object> caffeineCache;
 
 	private final RedisTemplate<Object, Object> stringKeyRedisTemplate;
@@ -45,10 +42,6 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	private final String topic;
 
 	private final Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
-
-	private RedisSerializer<String> stringSerializer = RedisSerializer.string();
-
-	private RedisSerializer<Object> javaSerializer = RedisSerializer.java();
 
 	public RedisCaffeineCache(String name, RedisTemplate<Object, Object> stringKeyRedisTemplate,
 			Cache<Object, Object> caffeineCache, CacheConfigProperties cacheConfigProperties) {
@@ -129,7 +122,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 		push(new CacheMessage(this.name, key));
 
-		caffeineCache.put(key, value);
+		setCaffeineValue(key, value);
 	}
 
 	@Override
@@ -159,7 +152,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	@Override
 	protected Object lookup(Object key) {
 		Object cacheKey = getKey(key);
-		Object value = caffeineCache.getIfPresent(key);
+		Object value = getCaffeineValue(key);
 		if (value != null) {
 			log.debug("get cache from caffeine, the key is : {}", cacheKey);
 			return value;
@@ -169,17 +162,17 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 		if (value != null) {
 			log.debug("get cache from redis and put in caffeine, the key is : {}", cacheKey);
-			caffeineCache.put(key, value);
+			setCaffeineValue(key, value);
 		}
 		return value;
 	}
 
-	private Object getKey(Object key) {
+	protected Object getKey(Object key) {
 		return this.name.concat(":").concat(
-				StringUtils.isEmpty(cachePrefix) ? key.toString() : cachePrefix.concat(":").concat(key.toString()));
+				StringUtils.hasLength(cachePrefix) ? cachePrefix.concat(":").concat(key.toString()) : key.toString());
 	}
 
-	private Duration getExpire(Object value) {
+	protected Duration getExpire(Object value) {
 		Duration cacheNameExpire = expires.get(this.name);
 		if (cacheNameExpire == null) {
 			cacheNameExpire = defaultExpiration;
@@ -197,20 +190,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 	 * @date 2018年1月31日 下午3:20:28
 	 * @version 1.0.0
 	 */
-	private void push(CacheMessage message) {
-
-		/**
-		 * 为了能自定义redisTemplate，发布订阅的序列化方式固定为jdk序列化方式。
-		 */
-		Assert.hasText(topic, "a non-empty channel is required");
-		byte[] rawChannel = stringSerializer.serialize(topic);
-		byte[] rawMessage = javaSerializer.serialize(message);
-		stringKeyRedisTemplate.execute((connection) -> {
-			connection.publish(rawChannel, rawMessage);
-			return null;
-		}, true);
-
-		// stringKeyRedisTemplate.convertAndSend(topic, message);
+	protected void push(CacheMessage message) {
+		stringKeyRedisTemplate.convertAndSend(topic, message);
 	}
 
 	/**
@@ -230,29 +211,25 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		}
 	}
 
-	private void setRedisValue(Object key, Object value, Duration expire) {
-
-		Object convertValue = value;
-		if (value == null || value == NullValue.INSTANCE) {
-			convertValue = RedisNullValue.REDISNULLVALUE;
-		}
-
+	protected void setRedisValue(Object key, Object value, Duration expire) {
 		if (!expire.isNegative() && !expire.isZero()) {
-			stringKeyRedisTemplate.opsForValue().set(getKey(key), convertValue, expire);
+			stringKeyRedisTemplate.opsForValue().set(getKey(key), value, expire);
 		}
 		else {
-			stringKeyRedisTemplate.opsForValue().set(getKey(key), convertValue);
+			stringKeyRedisTemplate.opsForValue().set(getKey(key), value);
 		}
 	}
 
-	private Object getRedisValue(Object key) {
+	protected Object getRedisValue(Object key) {
+		return stringKeyRedisTemplate.opsForValue().get(getKey(key));
+	}
 
-		// NullValue在不同序列化方式中存在问题，因此自定义了RedisNullValue做个转化。
-		Object value = stringKeyRedisTemplate.opsForValue().get(getKey(key));
-		if (value != null && value instanceof RedisNullValue) {
-			value = NullValue.INSTANCE;
-		}
-		return value;
+	protected void setCaffeineValue(Object key, Object value) {
+		caffeineCache.put(key, value);
+	}
+
+	protected Object getCaffeineValue(Object key) {
+		return caffeineCache.getIfPresent(key);
 	}
 
 }

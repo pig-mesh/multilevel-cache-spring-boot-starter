@@ -3,6 +3,8 @@ package com.pig4cloud.plugin.cache;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
 import com.pig4cloud.plugin.cache.support.CacheMessageListener;
 import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManager;
+import com.pig4cloud.plugin.cache.support.RedisCaffeineCaffeineCacheManagerCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -15,7 +17,10 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.util.Objects;
 
 /**
  * @author fuwei.deng
@@ -27,10 +32,15 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class MultilevelCacheAutoConfiguration {
 
 	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnBean(RedisTemplate.class)
 	public RedisCaffeineCacheManager cacheManager(CacheConfigProperties cacheConfigProperties,
-			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate) {
-		return new RedisCaffeineCacheManager(cacheConfigProperties, stringKeyRedisTemplate);
+			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
+			ObjectProvider<RedisCaffeineCaffeineCacheManagerCustomizer> cacheManagerCustomizers) {
+		RedisCaffeineCacheManager cacheManager = new RedisCaffeineCacheManager(cacheConfigProperties,
+				stringKeyRedisTemplate);
+		cacheManagerCustomizers.orderedStream().forEach(customizer -> customizer.customize(cacheManager));
+		return cacheManager;
 	}
 
 	/**
@@ -47,15 +57,26 @@ public class MultilevelCacheAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(name = "cacheMessageListenerContainer")
 	public RedisMessageListenerContainer cacheMessageListenerContainer(CacheConfigProperties cacheConfigProperties,
 			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
-			RedisCaffeineCacheManager redisCaffeineCacheManager) {
+			@Qualifier("cacheMessageListener") CacheMessageListener cacheMessageListener) {
 		RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
-		redisMessageListenerContainer.setConnectionFactory(stringKeyRedisTemplate.getConnectionFactory());
-		CacheMessageListener cacheMessageListener = new CacheMessageListener(redisCaffeineCacheManager);
+		redisMessageListenerContainer
+				.setConnectionFactory(Objects.requireNonNull(stringKeyRedisTemplate.getConnectionFactory()));
 		redisMessageListenerContainer.addMessageListener(cacheMessageListener,
 				new ChannelTopic(cacheConfigProperties.getRedis().getTopic()));
 		return redisMessageListenerContainer;
+	}
+
+	@Bean
+	@SuppressWarnings("unchecked")
+	@ConditionalOnMissingBean(name = "cacheMessageListener")
+	public CacheMessageListener cacheMessageListener(
+			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
+			RedisCaffeineCacheManager redisCaffeineCacheManager) {
+		return new CacheMessageListener((RedisSerializer<Object>) stringKeyRedisTemplate.getValueSerializer(),
+				redisCaffeineCacheManager);
 	}
 
 }
