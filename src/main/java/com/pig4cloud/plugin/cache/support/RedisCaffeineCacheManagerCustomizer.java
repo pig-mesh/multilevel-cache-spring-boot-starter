@@ -6,7 +6,7 @@ package com.pig4cloud.plugin.cache.support;
  * @author FlyInWind
  */
 @FunctionalInterface
-public interface RedisCaffeineCaffeineCacheManagerCustomizer {
+public interface RedisCaffeineCacheManagerCustomizer {
 
 	/**
 	 * 修改 {@link RedisCaffeineCacheManager}
