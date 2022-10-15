@@ -15,6 +15,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class CacheMessage implements Serializable {
 
+	private Object serverId;
+
 	private String cacheName;
 
 	private Object key;

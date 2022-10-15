@@ -7,6 +7,8 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
+import java.util.Objects;
+
 /**
  * @author fuwei.deng
  * @version 1.0.0
@@ -23,9 +25,11 @@ public class CacheMessageListener implements MessageListener {
 	@Override
 	public void onMessage(Message message, byte[] pattern) {
 		CacheMessage cacheMessage = (CacheMessage) redisSerializer.deserialize(message.getBody());
-		log.debug("receive a redis topic message, clear local cache, the cacheName is {}, the key is {}",
-				cacheMessage.getCacheName(), cacheMessage.getKey());
-		redisCaffeineCacheManager.clearLocal(cacheMessage.getCacheName(), cacheMessage.getKey());
+		if (!Objects.equals(cacheMessage.getServerId(), redisCaffeineCacheManager.getServerId())) {
+			log.debug("receive a redis topic message, clear local cache, the cacheName is {}, the key is {}",
+					cacheMessage.getCacheName(), cacheMessage.getKey());
+			redisCaffeineCacheManager.clearLocal(cacheMessage.getCacheName(), cacheMessage.getKey());
+		}
 	}
 
 }

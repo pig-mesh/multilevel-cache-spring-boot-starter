@@ -41,6 +41,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 
 	private final String topic;
 
+	private final Object serverId;
+
 	private final Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
 
 	public RedisCaffeineCache(String name, RedisTemplate<Object, Object> stringKeyRedisTemplate,
@@ -54,6 +56,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		this.defaultNullValuesExpiration = cacheConfigProperties.getRedis().getDefaultNullValuesExpiration();
 		this.expires = cacheConfigProperties.getRedis().getExpires();
 		this.topic = cacheConfigProperties.getRedis().getTopic();
+		this.serverId = cacheConfigProperties.getServerId();
 	}
 
 	@Override
@@ -120,7 +123,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		Duration expire = getExpire(value);
 		setRedisValue(key, value, expire);
 
-		push(new CacheMessage(this.name, key));
+		push(key);
 
 		setCaffeineValue(key, value);
 	}
@@ -130,7 +133,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 		// 先清除redis中缓存数据，然后清除caffeine中的缓存，避免短时间内如果先清除caffeine缓存后其他请求会再从redis里加载到caffeine中
 		stringKeyRedisTemplate.delete(getKey(key));
 
-		push(new CacheMessage(this.name, key));
+		push(key);
 
 		caffeineCache.invalidate(key);
 	}
@@ -144,7 +147,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			stringKeyRedisTemplate.delete(keys);
 		}
 
-		push(new CacheMessage(this.name, null));
+		push(null);
 
 		caffeineCache.invalidateAll();
 	}
@@ -181,6 +184,10 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache {
 			cacheNameExpire = this.defaultNullValuesExpiration;
 		}
 		return cacheNameExpire;
+	}
+
+	protected void push(Object key) {
+		push(new CacheMessage(this.serverId, this.name, key));
 	}
 
 	/**

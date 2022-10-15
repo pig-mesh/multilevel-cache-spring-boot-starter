@@ -35,6 +35,8 @@ public class RedisCaffeineCacheManager implements CacheManager {
 
 	private Set<String> cacheNames;
 
+	private Object serverId;
+
 	public RedisCaffeineCacheManager(CacheConfigProperties cacheConfigProperties,
 			RedisTemplate<Object, Object> stringKeyRedisTemplate) {
 		super();
@@ -42,6 +44,7 @@ public class RedisCaffeineCacheManager implements CacheManager {
 		this.stringKeyRedisTemplate = stringKeyRedisTemplate;
 		this.dynamic = cacheConfigProperties.isDynamic();
 		this.cacheNames = cacheConfigProperties.getCacheNames();
+		this.serverId = cacheConfigProperties.getServerId();
 	}
 
 	@Override
