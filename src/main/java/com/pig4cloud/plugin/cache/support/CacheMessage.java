@@ -1,5 +1,6 @@
 package com.pig4cloud.plugin.cache.support;
 
+import com.pig4cloud.plugin.cache.enums.CacheOperation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ public class CacheMessage implements Serializable {
 	private Object serverId;
 
 	private String cacheName;
+
+	private CacheOperation operation;
 
 	private Object key;
 

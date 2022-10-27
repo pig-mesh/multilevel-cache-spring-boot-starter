@@ -1,12 +1,12 @@
 package com.pig4cloud.plugin.cache.support;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.pig4cloud.plugin.cache.enums.CacheOperation;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.Duration;
@@ -61,6 +61,12 @@ public class RedisCaffeineCacheManager implements CacheManager {
 		Cache oldCache = cacheMap.putIfAbsent(name, cache);
 		log.debug("create cache instance, the cache name is : {}", name);
 		return oldCache == null ? cache : oldCache;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <K, V> com.github.benmanes.caffeine.cache.Cache<K, V> getCaffeineCache(String name) {
+		return (com.github.benmanes.caffeine.cache.Cache<K, V>) getCache(name);
 	}
 
 	public RedisCaffeineCache createCache(String name) {
@@ -118,13 +124,23 @@ public class RedisCaffeineCacheManager implements CacheManager {
 	}
 
 	public void clearLocal(String cacheName, Object key) {
+		clearLocal(cacheName, key, CacheOperation.EVICT);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void clearLocal(String cacheName, Object key, CacheOperation operation) {
 		Cache cache = cacheMap.get(cacheName);
 		if (cache == null) {
 			return;
 		}
 
 		RedisCaffeineCache redisCaffeineCache = (RedisCaffeineCache) cache;
-		redisCaffeineCache.clearLocal(key);
+		if (CacheOperation.EVICT_BATCH.equals(operation)) {
+			redisCaffeineCache.clearLocalBatch((Iterable<Object>) key);
+		}
+		else {
+			redisCaffeineCache.clearLocal(key);
+		}
 	}
 
 }
