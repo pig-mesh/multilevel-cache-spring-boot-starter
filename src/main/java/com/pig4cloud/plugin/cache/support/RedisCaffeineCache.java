@@ -45,6 +45,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 
 	private final String cachePrefix;
 
+	private final String getKeyPrefix;
+
 	private final Duration defaultExpiration;
 
 	private final Duration defaultNullValuesExpiration;
@@ -64,6 +66,12 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 		this.stringKeyRedisTemplate = stringKeyRedisTemplate;
 		this.caffeineCache = caffeineCache;
 		this.cachePrefix = cacheConfigProperties.getCachePrefix();
+		if (StringUtils.hasLength(cachePrefix)) {
+			this.getKeyPrefix = name + ":" + cachePrefix + ":";
+		}
+		else {
+			this.getKeyPrefix = name + ":";
+		}
 		this.defaultExpiration = cacheConfigProperties.getRedis().getDefaultExpiration();
 		this.defaultNullValuesExpiration = cacheConfigProperties.getRedis().getDefaultNullValuesExpiration();
 		this.expires = cacheConfigProperties.getRedis().getExpires();
@@ -183,8 +191,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 	}
 
 	protected Object getKey(Object key) {
-		return this.name.concat(":").concat(
-				StringUtils.hasLength(cachePrefix) ? cachePrefix.concat(":").concat(key.toString()) : key.toString());
+		return this.getKeyPrefix + key;
 	}
 
 	protected Duration getExpire(Object value) {
