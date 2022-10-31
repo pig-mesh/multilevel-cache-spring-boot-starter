@@ -4,6 +4,7 @@ import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
 import com.pig4cloud.plugin.cache.support.CacheMessageListener;
 import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManager;
 import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManagerCustomizer;
+import com.pig4cloud.plugin.cache.support.ServerIdGenerator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -36,7 +37,13 @@ public class MultilevelCacheAutoConfiguration {
 	@ConditionalOnBean(RedisTemplate.class)
 	public RedisCaffeineCacheManager cacheManager(CacheConfigProperties cacheConfigProperties,
 			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
-			ObjectProvider<RedisCaffeineCacheManagerCustomizer> cacheManagerCustomizers) {
+			ObjectProvider<RedisCaffeineCacheManagerCustomizer> cacheManagerCustomizers,
+			ObjectProvider<ServerIdGenerator> serverIdGenerators) {
+		Object serverId = cacheConfigProperties.getServerId();
+		if (serverId == null || "".equals(serverId)) {
+			serverIdGenerators
+					.ifAvailable(serverIdGenerator -> cacheConfigProperties.setServerId(serverIdGenerator.get()));
+		}
 		RedisCaffeineCacheManager cacheManager = new RedisCaffeineCacheManager(cacheConfigProperties,
 				stringKeyRedisTemplate);
 		cacheManagerCustomizers.orderedStream().forEach(customizer -> customizer.customize(cacheManager));

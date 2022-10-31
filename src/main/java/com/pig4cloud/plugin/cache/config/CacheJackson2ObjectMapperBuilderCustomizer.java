@@ -1,12 +1,9 @@
 package com.pig4cloud.plugin.cache.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.pig4cloud.plugin.cache.support.CacheMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.cache.support.NullValue;
@@ -31,9 +28,6 @@ public class CacheJackson2ObjectMapperBuilderCustomizer implements Jackson2Objec
 		// 反序列化会创建新的对象，而由于 NullValue#equal 方法仅通过 == 判断是否相等，会导致 equal 结果为 false
 		// 这里新建一个 Deserializer 专门返回 NullValue.INSTANCE
 		builder.deserializers(NullValueDeserializer.INSTANCE);
-
-		// CacheMessage需要通过有参构造器构造
-		builder.mixIn(CacheMessage.class, CacheMessageMix.class);
 	}
 
 	public static class NullValueDeserializer extends StdDeserializer<NullValue> {
@@ -53,14 +47,6 @@ public class CacheJackson2ObjectMapperBuilderCustomizer implements Jackson2Objec
 
 	@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 	public static class UseTypeInfo {
-
-	}
-
-	public static class CacheMessageMix {
-
-		@JsonCreator
-		public CacheMessageMix(@JsonProperty("cacheName") String cacheName, @JsonProperty("key") Object key) {
-		}
 
 	}
 

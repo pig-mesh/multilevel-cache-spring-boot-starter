@@ -35,4 +35,9 @@ public class RedisConfigProp {
 	 */
 	private String topic = "cache:redis:caffeine:topic";
 
+	/**
+	 * 生成当前节点id的key，当配置了spring.cache.multi.server-id时，该配置不生效
+	 */
+	private String serverIdGeneratorKey = "cache:redis:caffeine:server-id-sequence";
+
 }
