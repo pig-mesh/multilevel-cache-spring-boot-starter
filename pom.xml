@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.pig4cloud.plugin</groupId>
     <artifactId>multilevel-cache-spring-boot-starter</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
     <name>multilevel-cache-spring-boot-starter</name>
     <description>support L1 caffeine and L2 redis cache</description>
     <url>https://pig4cloud.com</url>
