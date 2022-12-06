@@ -28,8 +28,8 @@ import java.util.Objects;
  * @author fuwei.deng
  * @version 1.0.0
  */
-@Configuration(proxyBeanMethods = false)
 @AutoConfiguration
+@Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @EnableConfigurationProperties(CacheConfigProperties.class)
 public class MultilevelCacheAutoConfiguration {
