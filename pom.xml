@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.5</version>
+        <version>3.0.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.pig4cloud.plugin</groupId>
     <artifactId>multilevel-cache-spring-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>multilevel-cache-spring-boot-starter</name>
     <description>support L1 caffeine and L2 redis cache</description>
     <url>https://pig4cloud.com</url>
@@ -36,8 +36,8 @@
     </scm>
 
     <properties>
-        <java.version>1.8</java.version>
-        <mica.version>2.3.1</mica.version>
+        <java.version>17</java.version>
+        <mica.version>3.0.0</mica.version>
         <spring.checkstyle.plugin>0.0.29</spring.checkstyle.plugin>
     </properties>
 
@@ -122,7 +122,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
+                        <version>3.3.2</version>
                         <configuration>
                             <show>private</show>
                             <nohelp>true</nohelp>
@@ -165,7 +165,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>sonatype</serverId>

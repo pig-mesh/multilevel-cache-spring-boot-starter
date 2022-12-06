@@ -25,6 +25,10 @@
 ![](https://i.loli.net/2020/09/27/dbMiYhwTBurZK4y.png)
 
 ## 如何使用
+| 版本 | 支持 |
+|-------|--|
+| 3.0.0 | 适配 SpringBoot3.x |
+| 1.0.1 | 适配 SpringBoot2.x |
 
 - 1. 引入依赖
 
@@ -32,7 +36,7 @@
 <dependency>
     <groupId>com.pig4cloud.plugin</groupId>
     <artifactId>multilevel-cache-spring-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>${lastVersion}</version>
 </dependency>
 ```
 

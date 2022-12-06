@@ -301,8 +301,8 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public @NonNull Map<Object, Object> getAll(@NonNull Iterable<?> keys,
-			@NonNull Function<Iterable<?>, @NonNull Map<Object, Object>> mappingFunction) {
+	public @NonNull Map<Object, Object> getAll(Iterable<?> keys,
+			Function<? super Set<?>, ? extends Map<?, ?>> mappingFunction) {
 		GetAllContext context = new GetAllContext((Iterable<Object>) keys);
 		context.saveRedisAbsentKeys = true;
 		doGetAll(context);
@@ -315,7 +315,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 			return result;
 		}
 		// 从 mappingFunction 中获取值
-		Map<Object, Object> mappingKeyValues = mappingFunction.apply(context.redisAbsentKeys);
+		Map<?, ?> mappingKeyValues = mappingFunction.apply(context.redisAbsentKeys);
 		putAll(mappingKeyValues);
 		Map<Object, Object> result = new HashMap<>(cachedKeyValues.size() + mappingKeyValues.size(), 1);
 		cachedKeyValues.forEach((k, v) -> result.put(k, fromStoreValue(v)));
@@ -343,7 +343,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 			boolean saveCacheAbsentKeys = context.saveRedisAbsentKeys;
 			if (saveCacheAbsentKeys) {
 				// mappingFunction 的参数
-				context.redisAbsentKeys = new ArrayList<>(redisAbsentCount);
+				context.redisAbsentKeys = new HashSet<>(redisAbsentCount);
 			}
 			int index = 0;
 			for (Object key : caffeineAbsentKeys) {
@@ -376,7 +376,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 		/**
 		 * redis中未查询到的key
 		 */
-		protected List<Object> redisAbsentKeys;
+		protected Set<Object> redisAbsentKeys;
 
 		/**
 		 * redis中未查询到的key数量

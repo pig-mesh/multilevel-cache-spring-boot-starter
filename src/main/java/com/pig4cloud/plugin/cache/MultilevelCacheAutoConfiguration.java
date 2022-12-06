@@ -7,6 +7,7 @@ import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManagerCustomizer;
 import com.pig4cloud.plugin.cache.support.ServerIdGenerator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,6 +29,7 @@ import java.util.Objects;
  * @version 1.0.0
  */
 @Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @EnableConfigurationProperties(CacheConfigProperties.class)
 public class MultilevelCacheAutoConfiguration {
