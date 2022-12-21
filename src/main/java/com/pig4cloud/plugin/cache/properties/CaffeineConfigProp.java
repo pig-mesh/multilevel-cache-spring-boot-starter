@@ -4,6 +4,8 @@ import com.pig4cloud.plugin.cache.enums.CaffeineStrength;
 import lombok.Data;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author lengleng
@@ -15,19 +17,34 @@ import java.time.Duration;
 public class CaffeineConfigProp {
 
 	/**
-	 * 访问后过期时间
+	 * 默认访问后过期时间
 	 */
 	private Duration expireAfterAccess;
 
 	/**
-	 * 写入后过期时间
+	 * 每个cacheName的过访问后过期时间，优先级比expireAfterAccess高
+	 */
+	private Map<String, Duration> expireAfterAccesses = new HashMap<>();
+
+	/**
+	 * 默认写入后过期时间
 	 */
 	private Duration expireAfterWrite;
 
 	/**
-	 * 写入后刷新时间
+	 * 每个cacheName的写入后过期时间，优先级比expireAfterWrite高
+	 */
+	private Map<String, Duration> expireAfterWrites = new HashMap<>();
+
+	/**
+	 * 默认写入后刷新时间
 	 */
 	private Duration refreshAfterWrite;
+
+	/**
+	 * 每个cacheName的入后刷新时间，优先级比refreshAfterWrite高
+	 */
+	private Map<String, Duration> refreshAfterWrites = new HashMap<>();
 
 	/**
 	 * 初始化大小

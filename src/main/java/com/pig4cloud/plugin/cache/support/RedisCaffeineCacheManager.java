@@ -3,6 +3,7 @@ package com.pig4cloud.plugin.cache.support;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pig4cloud.plugin.cache.enums.CacheOperation;
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
+import com.pig4cloud.plugin.cache.properties.CaffeineConfigProp;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -70,26 +71,30 @@ public class RedisCaffeineCacheManager implements CacheManager {
 	}
 
 	public RedisCaffeineCache createCache(String name) {
-		return new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(), cacheConfigProperties);
+		return new RedisCaffeineCache(name, stringKeyRedisTemplate, caffeineCache(name), cacheConfigProperties);
 	}
 
-	public com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache() {
-		return caffeineCacheBuilder().build();
+	public com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeineCache(String name) {
+		return caffeineCacheBuilder(name).build();
 	}
 
-	public Caffeine<Object, Object> caffeineCacheBuilder() {
+	public Caffeine<Object, Object> caffeineCacheBuilder(String name) {
 		Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
-		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterAccess(), cacheBuilder::expireAfterAccess);
-		doIfPresent(cacheConfigProperties.getCaffeine().getExpireAfterWrite(), cacheBuilder::expireAfterWrite);
-		doIfPresent(cacheConfigProperties.getCaffeine().getRefreshAfterWrite(), cacheBuilder::refreshAfterWrite);
-		if (cacheConfigProperties.getCaffeine().getInitialCapacity() > 0) {
-			cacheBuilder.initialCapacity(cacheConfigProperties.getCaffeine().getInitialCapacity());
+		CaffeineConfigProp caffeineProp = cacheConfigProperties.getCaffeine();
+		doIfPresent(caffeineProp.getExpireAfterAccesses().getOrDefault(name, caffeineProp.getExpireAfterAccess()),
+				cacheBuilder::expireAfterAccess);
+		doIfPresent(caffeineProp.getExpireAfterWrites().getOrDefault(name, caffeineProp.getExpireAfterWrite()),
+				cacheBuilder::expireAfterWrite);
+		doIfPresent(caffeineProp.getRefreshAfterWrites().getOrDefault(name, caffeineProp.getRefreshAfterWrite()),
+				cacheBuilder::refreshAfterWrite);
+		if (caffeineProp.getInitialCapacity() > 0) {
+			cacheBuilder.initialCapacity(caffeineProp.getInitialCapacity());
 		}
-		if (cacheConfigProperties.getCaffeine().getMaximumSize() > 0) {
-			cacheBuilder.maximumSize(cacheConfigProperties.getCaffeine().getMaximumSize());
+		if (caffeineProp.getMaximumSize() > 0) {
+			cacheBuilder.maximumSize(caffeineProp.getMaximumSize());
 		}
-		if (cacheConfigProperties.getCaffeine().getKeyStrength() != null) {
-			switch (cacheConfigProperties.getCaffeine().getKeyStrength()) {
+		if (caffeineProp.getKeyStrength() != null) {
+			switch (caffeineProp.getKeyStrength()) {
 			case WEAK:
 				cacheBuilder.weakKeys();
 				break;
@@ -98,8 +103,8 @@ public class RedisCaffeineCacheManager implements CacheManager {
 			default:
 			}
 		}
-		if (cacheConfigProperties.getCaffeine().getValueStrength() != null) {
-			switch (cacheConfigProperties.getCaffeine().getValueStrength()) {
+		if (caffeineProp.getValueStrength() != null) {
+			switch (caffeineProp.getValueStrength()) {
 			case WEAK:
 				cacheBuilder.weakValues();
 				break;
