@@ -1,10 +1,7 @@
 package com.pig4cloud.plugin.cache;
 
 import com.pig4cloud.plugin.cache.properties.CacheConfigProperties;
-import com.pig4cloud.plugin.cache.support.CacheMessageListener;
-import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManager;
-import com.pig4cloud.plugin.cache.support.RedisCaffeineCacheManagerCustomizer;
-import com.pig4cloud.plugin.cache.support.ServerIdGenerator;
+import com.pig4cloud.plugin.cache.support.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -82,6 +79,14 @@ public class MultilevelCacheAutoConfiguration {
 			RedisCaffeineCacheManager redisCaffeineCacheManager) {
 		return new CacheMessageListener((RedisSerializer<Object>) stringKeyRedisTemplate.getValueSerializer(),
 				redisCaffeineCacheManager);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ServerIdGenerator.class)
+	public ServerIdGenerator redisSequenceServerIdGenerator(
+			@Qualifier("stringKeyRedisTemplate") RedisTemplate<Object, Object> stringKeyRedisTemplate,
+			CacheConfigProperties properties) {
+		return new RedisSequenceServerIdGenerator(stringKeyRedisTemplate, properties);
 	}
 
 }
