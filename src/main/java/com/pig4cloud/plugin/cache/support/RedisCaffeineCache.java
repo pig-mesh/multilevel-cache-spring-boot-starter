@@ -343,7 +343,7 @@ public class RedisCaffeineCache extends AbstractValueAdaptingCache implements Ca
 			boolean saveCacheAbsentKeys = context.saveRedisAbsentKeys;
 			if (saveCacheAbsentKeys) {
 				// mappingFunction 的参数
-				context.redisAbsentKeys = new HashSet<>(redisAbsentCount);
+				context.redisAbsentKeys = new HashSet<>(redisAbsentCount, 1);
 			}
 			int index = 0;
 			for (Object key : caffeineAbsentKeys) {
